@@ -1,0 +1,84 @@
+---
+title: "Energy System Analysis with SPLAT MESSAGE Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(plotly)
+Load Data
+{r
+
+demand <- read_csv("data/demand.csv")
+tech_costs <- read_csv("data/tech_costs.csv")
+emissions <- read_csv("data/emissions.csv")
+emissions_cap <- read_csv("data/emissions_cap.csv")
+Electricity Demand Over Time
+{r
+
+p_demand <- ggplot(demand, aes(x = year, y = demand)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  labs(title = "Electricity Demand Over Time", y = "Demand (GWh)", x = "Year") +
+  theme_minimal()
+
+ggplotly(p_demand)
+Technology Cost Trends
+{r
+
+p_costs <- ggplot(tech_costs, aes(x = year, y = cost, color = technology)) +
+  geom_line(size = 1) +
+  geom_point() +
+  labs(title = "Technology Cost Trends", y = "Capital Cost (USD/kW)", x = "Year") +
+  theme_minimal() +
+  facet_wrap(~ technology, scales = "free_y")
+
+ggplotly(p_costs)
+Average Emission Factors by Technology
+{r
+
+emissions_summary <- emissions %>%
+  group_by(technology, emission) %>%
+  summarise(avg_emission = mean(value, na.rm = TRUE)) %>%
+  ungroup()
+
+p_emissions <- ggplot(emissions_summary, aes(x = technology, y = avg_emission, fill = emission)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Average Emission Factors by Technology", y = "Emission Factor (kg CO2/kWh)", x = "Technology") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplotly(p_emissions)
+National Emissions Cap Over Time
+{r
+
+p_emissions_cap <- ggplot(emissions_cap, aes(x = year, y = value, color = emission)) +
+  geom_line(size = 1.2) +
+  geom_point() +
+  labs(title = "National Emissions Cap Over Time", y = "Cap Value (MtCO2)", x = "Year") +
+  theme_minimal()
+
+ggplotly(p_emissions_cap)
+Scenario Analysis: Electricity Demand Growth (+10%)
+{r
+
+simulate_demand_growth <- function(demand_df, growth_rate) {
+  demand_df %>%
+    mutate(scenario_demand = demand * (1 + growth_rate)) %>%
+    select(year, demand, scenario_demand)
+}
+
+demand_growth_10 <- simulate_demand_growth(demand, 0.10)
+
+p_demand_growth <- ggplot(demand_growth_10, aes(x = year)) +
+  geom_line(aes(y = demand), color = "blue", size = 1) +
+  geom_line(aes(y = scenario_demand), color = "green", linetype = "dashed", size = 1) +
+  labs(title = "Electricity Demand: Baseline vs +10% Growth Scenario",
+       y = "Demand (GWh)", x = "Year") +
+  theme_minimal()
+
+ggplotly(p_demand_growth)
+Summary
+This report analyzes electricity demand trends, technology cost evolution, emissions factors, and national emissions caps for Zimbabwe using SPLAT MESSAGE data. A scenario with a 10% increase in electricity demand is also illustrated.
