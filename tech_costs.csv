@@ -1,0 +1,5 @@
+technology,capital_cost,fixed_cost,variable_cost,lifetime
+coal,1000,20,30,40
+solar,700,10,0,25
+hydro,1200,15,5,50
+wind,800,12,2,30
